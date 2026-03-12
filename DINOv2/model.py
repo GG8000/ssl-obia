@@ -5,7 +5,7 @@ from einops import rearrange
 
 
 class PatchEmbed(nn.Module):
-    def __init__(self, img_size=128, patch_size=8, in_chans=6, embed_dim=768):
+    def __init__(self, img_size=128, patch_size=8, in_chans=6, embed_dim=256):
         super().__init__()
         self.proj = nn.Conv2d(in_chans, embed_dim, kernel_size=patch_size, stride=patch_size)
         self.num_patches = (img_size // patch_size) ** 2
@@ -17,7 +17,7 @@ class PatchEmbed(nn.Module):
 
 
 class ViT(nn.Module):
-    def __init__(self, img_size=128, patch_size=8, in_chans=6, embed_dim=768, depth=12, num_heads=12):
+    def __init__(self, img_size=128, patch_size=8, in_chans=6, embed_dim=256, depth=4, num_heads=4):
         super().__init__()
         self.patch_embed = PatchEmbed(img_size, patch_size, in_chans, embed_dim)
         self.cls_token = nn.Parameter(torch.zeros(1, 1, embed_dim))
@@ -86,8 +86,8 @@ class DINOv2(nn.Module):
         super().__init__()
         self.student = ViT(img_size=128, patch_size=8, in_chans=6)
         self.teacher = ViT(img_size=128, patch_size=8, in_chans=6)
-        self.student_head = DINOHead(768)
-        self.teacher_head = DINOHead(768)
+        self.student_head = DINOHead(256)
+        self.teacher_head = DINOHead(256)
 
         # Copy student -> teacher
         for p_s, p_t in zip(self.student.parameters(), self.teacher.parameters()):
