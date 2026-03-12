@@ -16,7 +16,7 @@ class NumpyDINODataset(Dataset):
         self.files = sorted(self.root_dir.glob("img_*.npy"))
 
         self.global_trans = A.Compose([
-            A.RandomResizedCrop(128, 128, scale=(0.4, 1.0)),
+            A.RandomResizedCrop((128, 128), scale=(0.4, 1.0)),
             A.HorizontalFlip(p=0.5),
             A.RandomBrightnessContrast(0.2, 0.2, p=0.5),
             A.GaussNoise(p=0.3),
@@ -25,7 +25,7 @@ class NumpyDINODataset(Dataset):
         ])
 
         self.local_trans = A.Compose([
-            A.RandomResizedCrop(64, 64, scale=(0.05, 0.4)),
+            A.RandomResizedCrop((64, 64), scale=(0.05, 0.4)),
             A.HorizontalFlip(p=0.5),
             A.RandomBrightnessContrast(0.2, 0.2, p=0.5),
             A.GaussNoise(p=0.3),
