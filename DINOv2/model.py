@@ -31,9 +31,28 @@ class ViT(nn.Module):
     def forward(self, x):
         B = x.shape[0]
         x = self.patch_embed(x)
+        N = x.shape[1]  # Anzahl Patches (abhängig von Input-Größe)
+
         cls_tokens = self.cls_token.expand(B, -1, -1)
-        x = torch.cat([cls_tokens, x], dim=1)
-        x = x + self.pos_embed
+        x = torch.cat([cls_tokens, x], dim=1)  # (B, N+1, D)
+
+        # pos_embed interpolieren falls Input-Größe != 128x128
+        pos_embed = self.pos_embed
+        if N + 1 != pos_embed.shape[1]:
+            cls_pos = pos_embed[:, :1, :]           # CLS token position
+            patch_pos = pos_embed[:, 1:, :]         # Patch positions
+            # Patch positions auf neue Größe interpolieren
+            D = patch_pos.shape[-1]
+            orig_size = int(patch_pos.shape[1] ** 0.5)
+            new_size  = int(N ** 0.5)
+            patch_pos = patch_pos.reshape(1, orig_size, orig_size, D).permute(0, 3, 1, 2)
+            patch_pos = torch.nn.functional.interpolate(
+                patch_pos, size=(new_size, new_size), mode='bilinear', align_corners=False
+            )
+            patch_pos = patch_pos.permute(0, 2, 3, 1).reshape(1, new_size * new_size, D)
+            pos_embed = torch.cat([cls_pos, patch_pos], dim=1)
+
+        x = x + pos_embed
         for blk in self.blocks:
             x = blk(x)
         x = self.norm(x)

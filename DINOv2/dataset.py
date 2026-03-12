@@ -13,7 +13,7 @@ class NumpyDINODataset(Dataset):
     """
     def __init__(self, root_dir: str):
         self.root_dir = Path(root_dir)
-        self.files = sorted(self.root_dir.glob("*.npy"))
+        self.files = sorted(self.root_dir.glob("img_*.npy"))
 
         self.global_trans = A.Compose([
             A.RandomResizedCrop(128, 128, scale=(0.4, 1.0)),
@@ -38,7 +38,7 @@ class NumpyDINODataset(Dataset):
 
     def __getitem__(self, idx):
         img = np.load(self.files[idx]).astype(np.float32)
-        img = img.transpose(1, 2, 0)  # (H, W, 6)
+        img = np.transpose(img, (1, 2, 0))  # (H, W, 6)
 
         views = []
         for _ in range(2):
